@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createUser, UserConflictError } from "@/lib/services/user";
-import { POST } from "./route";
+import { POST } from "./handler";
 
 vi.mock("@/lib/services/user", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("@/lib/services/user")>();

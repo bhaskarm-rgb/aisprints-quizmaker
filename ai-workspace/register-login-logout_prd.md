@@ -392,9 +392,9 @@ export default defineConfig({
 - `src/lib/hash-password.ts` - shared SHA-256 hex helper (browser + Workers)
 - `src/lib/services/user.ts` - D1-backed create, find, update, delete
 - `src/lib/auth/schemas.ts` - Zod schemas for register and login bodies
-- `src/app/api/auth/register/route.ts` - register endpoint
-- `src/app/api/auth/login/route.ts` - login endpoint
-- `src/app/api/auth/logout/route.ts` - logout endpoint
+- `src/app/api/auth/register/route.ts` - register endpoint (re-exports `POST` from `handler.ts`)
+- `src/app/api/auth/login/route.ts` - login endpoint (re-exports `POST` from `handler.ts`)
+- `src/app/api/auth/logout/route.ts` - logout endpoint (re-exports `POST` from `handler.ts`)
 - `src/app/page.tsx` - landing
 - `src/app/register/page.tsx` - register page
 - `src/app/login/page.tsx` - login page
@@ -463,7 +463,7 @@ Implemented in `src/lib/services/user.ts`:
 - `getCloudflareContext({ async: true })` is used so the service works in App Router
 - User-service tests mock that call with an in-memory `env.DB` (`src/lib/services/user.test.ts`)
 
-Auth route handlers (`src/app/api/auth/*/route.ts`) validate with Zod, call the user service, and never return `passwordHash`. Tests mock `@/lib/services/user` so they do not touch D1. Unknown username and wrong password both return `{ "error": "Invalid username or password" }`.
+- Tests import `POST` from `handler.ts`, not `route.ts`. The Next.js TypeScript plugin treats App Router `route.ts` files as entries and reports `Cannot find module './route'` from colocated tests.
 
 Mock Cloudflare and D1 at the module boundary. Never open a real database in unit tests:
 

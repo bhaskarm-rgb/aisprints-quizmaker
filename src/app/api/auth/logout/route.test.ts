@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { POST } from "./route";
+import { POST } from "./handler";
 
 describe("POST /api/auth/logout", () => {
 	it("returns 200 with ok true", async () => {
