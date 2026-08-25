@@ -80,7 +80,7 @@ export function LoginForm({
 				<CardHeader>
 					<CardTitle>Login to your account</CardTitle>
 					<CardDescription>
-						Enter your username below to login to your account
+						Enter your username or email below to login to your account
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -88,7 +88,7 @@ export function LoginForm({
 						<FieldGroup>
 							{formError ? <FieldError errors={[{ message: formError }]} /> : null}
 							<Field>
-								<FieldLabel htmlFor="username">Username</FieldLabel>
+								<FieldLabel htmlFor="username">Username or email</FieldLabel>
 								<Input
 									id="username"
 									name="username"

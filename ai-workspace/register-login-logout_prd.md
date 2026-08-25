@@ -162,7 +162,7 @@ Replace the starter homepage with a short QuizMaker landing that links to regist
 
 #### Login (/login)
 - Page uses the shadcn login-block layout and `LoginForm` from `@/components/login-form`
-- Fields: username and password (the block's email field is username — login is by username, which may be an email address)
+- Fields: username or email, and password (login matches either the username or the email stored at registration)
 - No "Forgot your password?" and no "Login with Google"
 - Client validation: both required; password at least 8 characters
 - On submit: hash the plaintext password with SHA-256 (hex), POST `/api/auth/login` with the hash, then navigate to `/mcqs` on 200
@@ -517,6 +517,7 @@ Implemented in `src/lib/services/user.ts`:
 - Missing rows on update or delete become `UserNotFoundError`
 - `getCloudflareContext({ async: true })` is used so the service works in App Router
 - User-service tests mock that call with an in-memory `env.DB` (`src/lib/services/user.test.ts`)
+- Login lookup is `username = ?1 COLLATE NOCASE OR email = ?1 COLLATE NOCASE` so teachers can sign in with either field from registration
 
 - Tests import `POST` from `handler.ts`, not `route.ts`. The Next.js TypeScript plugin treats App Router `route.ts` files as entries and reports `Cannot find module './route'` from colocated tests.
 

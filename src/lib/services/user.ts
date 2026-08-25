@@ -124,7 +124,7 @@ export async function findUserByUsername(username: string): Promise<UserRecord |
 	const db = await getDb();
 	const { results } = await db
 		.prepare(
-			"SELECT id, first_name, last_name, username, email, password_hash FROM users WHERE username = ?1",
+			"SELECT id, first_name, last_name, username, email, password_hash FROM users WHERE username = ?1 COLLATE NOCASE OR email = ?1 COLLATE NOCASE",
 		)
 		.bind(username)
 		.all<UserRow>();

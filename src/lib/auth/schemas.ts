@@ -11,12 +11,12 @@ export const registerBodySchema = z.object({
 });
 
 export const loginBodySchema = z.object({
-	username: z.string().trim().min(1).max(50),
+	username: z.string().trim().min(1).max(254),
 	password: sha256Hex,
 });
 
 export const loginFormSchema = z.object({
-	username: z.string().trim().min(1).max(50),
+	username: z.string().trim().min(1).max(254),
 	password: z.string().min(8),
 });
 

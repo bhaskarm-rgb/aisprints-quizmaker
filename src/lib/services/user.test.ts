@@ -50,8 +50,13 @@ function createMockDb() {
 							}
 
 							if (/SELECT\s+/i.test(sql) && /WHERE\s+username\s*=/i.test(sql)) {
-								const [username] = values as string[];
-								const row = users.find((user) => user.username === username);
+								const [identifier] = values as string[];
+								const needle = String(identifier).toLowerCase();
+								const row = users.find(
+									(user) =>
+										user.username.toLowerCase() === needle ||
+										user.email.toLowerCase() === needle,
+								);
 								return { results: row ? [row as T] : [] };
 							}
 
@@ -179,6 +184,32 @@ describe("user service", () => {
 				email: "jane@school.edu",
 			}),
 		).rejects.toBeInstanceOf(UserConflictError);
+	});
+
+	it("finds a user by email when it differs from username", async () => {
+		await createUser({
+			...jane,
+			username: "dev123",
+			email: "123@gmail.com",
+		});
+
+		const found = await findUserByUsername("123@gmail.com");
+		expect(found).toMatchObject({
+			username: "dev123",
+			email: "123@gmail.com",
+			passwordHash: jane.passwordHash,
+		});
+	});
+
+	it("finds a user by username case-insensitively", async () => {
+		await createUser({
+			...jane,
+			username: "Dev_testing",
+			email: "dev@testing.com",
+		});
+
+		const found = await findUserByUsername("dev_testing");
+		expect(found?.username).toBe("Dev_testing");
 	});
 
 	it("finds a user by username including the hash, or returns null", async () => {
