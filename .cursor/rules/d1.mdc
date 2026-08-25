@@ -6,8 +6,8 @@ alwaysApply: false
 
 # Cloudflare D1
 
-D1 is Cloudflare's SQLite database. **This starter has no D1 database configured yet.**
-The conventions below apply once one is added, and describe how to add it.
+D1 is Cloudflare's SQLite database. This project binds it as `DB` in `wrangler.jsonc`
+(database name `quizmaker`). Apply schema changes with migrations; never with ad-hoc SQL.
 
 ## Adding D1 to the project
 
