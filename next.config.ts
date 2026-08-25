@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
 	// Pin the workspace root so a stray lockfile elsewhere on the machine cannot
@@ -10,7 +11,8 @@ const nextConfig: NextConfig = {
 
 export default nextConfig;
 
-// Enable calling `getCloudflareContext()` in `next dev`.
+// Enable calling `getCloudflareContext()` in `next dev` only.
 // See https://opennext.js.org/cloudflare/bindings#local-access-to-bindings.
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-initOpenNextCloudflareForDev();
+if (process.argv.includes("dev")) {
+	initOpenNextCloudflareForDev();
+}
