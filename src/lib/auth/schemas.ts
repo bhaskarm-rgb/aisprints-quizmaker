@@ -15,5 +15,24 @@ export const loginBodySchema = z.object({
 	password: sha256Hex,
 });
 
+export const loginFormSchema = z.object({
+	username: z.string().trim().min(1).max(50),
+	password: z.string().min(8),
+});
+
+export const registerFormSchema = z
+	.object({
+		firstName: z.string().trim().min(1).max(50),
+		lastName: z.string().trim().min(1).max(50),
+		username: z.string().trim().min(3).max(50),
+		email: z.string().trim().pipe(z.email()),
+		password: z.string().min(8),
+		confirmPassword: z.string(),
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		message: "Passwords do not match",
+		path: ["confirmPassword"],
+	});
+
 export type RegisterBody = z.infer<typeof registerBodySchema>;
 export type LoginBody = z.infer<typeof loginBodySchema>;

@@ -134,6 +134,54 @@ The client then navigates to `/login`.
 
 ### User Interface Requirements
 
+Start from the shadcn/ui **login** and **signup** blocks (card + field + input + button). Keep their centered page layout and card chrome. Tailwind is already provided by shadcn; do not add a second styling system. Surface errors through `FieldError`. Do not add `react-hook-form`. Theme with tokens from `src/app/globals.css`.
+
+Map the block fields onto the `users` table. Drop block features that are out of scope (Google buttons, "Forgot your password?").
+
+Replace the starter homepage with a short QuizMaker landing that links to register and login.
+
+#### Landing (/)
+- Product name and one-sentence purpose
+- Links to `/register` and `/login`
+
+#### Register (/register)
+- Page uses the shadcn signup-block layout (`min-h-svh`, centered, `max-w-sm`) and `SignupForm` from `@/components/signup-form`
+- Fields (block's single "Full Name" is split to match the schema):
+  - First name, last name, username, email, password, confirm password
+- Username and email may be identical
+- No "Sign up with Google" control
+- Client validation before submit:
+  - First and last name required, 1–50 characters
+  - Username required, 3–50 characters
+  - Email required and a valid email address
+  - Password required, at least 8 characters
+  - Confirm password must match password
+- On submit: hash the plaintext password with SHA-256 (hex), POST `/api/auth/register` with the hash (never the plaintext), then navigate to `/mcqs` on 201
+- Show field errors and a form-level message for 409 / 500
+- "Already have an account? Sign in" links to `/login`
+
+#### Login (/login)
+- Page uses the shadcn login-block layout and `LoginForm` from `@/components/login-form`
+- Fields: username and password (the block's email field is username — login is by username, which may be an email address)
+- No "Forgot your password?" and no "Login with Google"
+- Client validation: both required; password at least 8 characters
+- On submit: hash the plaintext password with SHA-256 (hex), POST `/api/auth/login` with the hash, then navigate to `/mcqs` on 200
+- Show a single generic error for 401 so the UI does not reveal whether the username exists
+- "Don't have an account? Sign up" links to `/register`
+
+#### MCQ stub (/mcqs)
+- Heading such as "Question Bank"
+- Short copy that this page will hold the shared MCQ bank in the next sprint
+- Logout control that POSTs `/api/auth/logout` and navigates to `/login`
+- No question list, editor, or persistence
+
+#### Logout
+- Not its own page
+- Triggered from `/mcqs` (and any later authenticated chrome)
+- Always ends on `/login`
+
+`/mcqs` is not gated. Without sessions, a direct visit is allowed. That is accepted for this sprint.
+
 Use existing shadcn/ui pieces (`card`, `field`, `input`, `label`, `button`). Build forms with the `field` primitive and surface Zod issues through `FieldError`. Do not add `react-hook-form`. Theme with tokens from `src/app/globals.css` (`bg-background`, `text-muted-foreground`, `border-destructive`).
 
 Replace the starter homepage with a short QuizMaker landing that links to register and login.
@@ -320,41 +368,44 @@ export default defineConfig({
 - `src/app/api/auth/logout/route.ts` and `route.test.ts`
 - Shared request/response types as needed
 
-### Phase 4: Auth UI and MCQ stub - PLANNED
+### Phase 4: Auth UI and MCQ stub - COMPLETED
 
 **Objective**: Let a teacher register or log in from the browser and land on the MCQ stub.
 
 **TDD (write first — expect red)**:
 1. Put interactive UI in client components so Testing Library can render them. Query by role and accessible name. Use `userEvent`, not `fireEvent`.
-2. `src/components/auth/register-form.test.tsx`:
+2. `src/components/signup-form.test.tsx`:
    - Renders first name, last name, username, email, password, confirm password
    - Blocks submit when confirm password does not match (no `fetch`)
    - On valid submit, `fetch` POSTs `/api/auth/register` with a SHA-256 hex `password`, never the plaintext
    - 201 response navigates to `/mcqs` (mock `next/navigation`)
    - 409 shows a form-level error
-3. `src/components/auth/login-form.test.tsx`:
+3. `src/components/login-form.test.tsx`:
    - On valid submit, `fetch` POSTs `/api/auth/login` with a hashed password
    - 200 navigates to `/mcqs`
    - 401 shows a generic error that does not say whether the username exists
-4. `src/components/auth/logout-button.test.tsx`:
+4. `src/components/logout-button.test.tsx`:
    - Click POSTs `/api/auth/logout` then navigates to `/login`
 5. Run `npm test` and confirm the new tests fail
 
 **Implement (turn green)**:
 1. Replace the starter homepage with a landing page
-2. Build `/register` and `/login` with shadcn `field`, `input`, `button`, and `card`
-3. Hash the password in the browser before POST
-4. Add `/mcqs` stub with a logout control
-5. Wire success and error paths for all three actions
-6. Re-run `npm test` until the form tests pass
+2. Add `/login` and `/register` using the shadcn login/signup block page shells
+3. Implement `LoginForm` and `SignupForm` from those blocks, adapted to our fields (no Google, no forgot-password)
+4. Hash the password in the browser before POST
+5. Add `/mcqs` stub with a logout control
+6. Wire success and error paths for all three actions
+7. Re-run `npm test` until the form tests pass
 
 **Phase gate**: `npm test` is green for register, login, and logout UI tests. Prior tests stay green. Then verify the same flows in the browser (landing, register, login, stub, logout).
 
 **Deliverables**:
 - `src/app/page.tsx` landing
-- `src/app/register/page.tsx` and register form
-- `src/app/login/page.tsx` and login form
+- `src/app/register/page.tsx` (shadcn signup-block shell)
+- `src/app/login/page.tsx` (shadcn login-block shell)
+- `src/components/signup-form.tsx` and `src/components/login-form.tsx`
 - `src/app/mcqs/page.tsx` stub
+- `src/components/logout-button.tsx`
 - Client hashing used on both forms
 - Colocated `*.test.tsx` for the client components
 
@@ -396,16 +447,20 @@ export default defineConfig({
 - `src/app/api/auth/login/route.ts` - login endpoint (re-exports `POST` from `handler.ts`)
 - `src/app/api/auth/logout/route.ts` - logout endpoint (re-exports `POST` from `handler.ts`)
 - `src/app/page.tsx` - landing
-- `src/app/register/page.tsx` - register page
-- `src/app/login/page.tsx` - login page
+- `src/app/register/page.tsx` - register page (shadcn signup-block layout)
+- `src/app/login/page.tsx` - login page (shadcn login-block layout)
 - `src/app/mcqs/page.tsx` - MCQ stub
-- `src/components/` - register and login forms (client components)
+- `src/components/signup-form.tsx` - register form (shadcn signup block, adapted fields)
+- `src/components/login-form.tsx` - login form (shadcn login block, username instead of email)
+- `src/components/logout-button.tsx` - logout control
 - `vitest.config.ts` - Vitest + jsdom + `@/` path resolution
 - `src/lib/db/users-schema.test.ts` - migration and D1 binding contract
 - `src/lib/hash-password.test.ts` - SHA-256 helper
 - `src/lib/services/user.test.ts` - user service against mocked D1
 - `src/app/api/auth/*/route.test.ts` - register, login, logout handlers
-- `src/components/auth/*.test.tsx` - register, login, and logout UI
+- `src/components/signup-form.test.tsx` - register UI
+- `src/components/login-form.test.tsx` - login UI
+- `src/components/logout-button.test.tsx` - logout UI
 
 ### Implementation Patterns
 
@@ -503,25 +558,26 @@ vi.mock("server-only", () => ({}));
 
 ## Acceptance Criteria
 
-- [ ] A teacher can register with first name, last name, username, email, and password and is taken to `/mcqs`
-- [ ] Username and email may be the same value on a single account
+- [x] A teacher can register with first name, last name, username, email, and password and is taken to `/mcqs`
+- [x] Username and email may be the same value on a single account
 - [ ] The stored `password_hash` is a SHA-256 hex digest, not the plaintext password
-- [ ] The register and login POSTs send the hash, not the plaintext password
-- [ ] A teacher can log in with username and password and is taken to `/mcqs`
-- [ ] A duplicate username or email is rejected with 409 and a clear form error
+- [x] The register and login POSTs send the hash, not the plaintext password
+- [x] A teacher can log in with username and password and is taken to `/mcqs`
+- [x] A duplicate username or email is rejected with 409 and a clear form error
 - [x] POST /api/auth/register returns 409 when the user service throws UserConflictError
 - [x] A wrong username or password is rejected with 401 and the same generic message
 - [x] Missing or invalid fields are rejected with 400 before any write
 - [x] Phase 3 route tests: red (missing route modules), then green (`npm test` 24 passed)
-- [ ] Logout from `/mcqs` calls `POST /api/auth/logout` and returns the teacher to `/login`
-- [ ] `/mcqs` is a stub only: no question CRUD
-- [ ] No cookies, tokens, or session records are created
+- [x] Logout from `/mcqs` calls `POST /api/auth/logout` and returns the teacher to `/login`
+- [x] `/mcqs` is a stub only: no question CRUD
+- [x] No cookies, tokens, or session records are created
 - [x] The user service can create, update, and delete users even though update and delete have no public endpoints yet
 - [x] User service create, find, update, and delete pass against a mocked D1 (`src/lib/services/user.test.ts`)
 - [ ] Each phase's Vitest tests were written first, failed for the intended reason, then passed after implementation
 - [x] Phase 1 schema tests: red (no `DB` binding, no `migrations/`), then green after D1 + `0001_create_users.sql`
 - [x] Phase 2 hashing and user-service tests: red (missing modules), then green (`npm test` 14 passed)
-- [ ] `npm test` (Vitest) succeeds for schema, hashing, user service, auth routes, and auth UI
+- [x] Phase 4 form tests: red (missing form modules), then green (`npm test` 31 passed)
+- [x] `npm test` (Vitest) succeeds for schema, hashing, user service, auth routes, and auth UI
 - [ ] `npm run lint` and `npm run build` succeed
 
 ---
@@ -666,6 +722,6 @@ When working with this PRD:
 ## Current Status
 
 **Last Updated**: 2026-08-25
-**Current Phase**: Phase 3 - Auth API
+**Current Phase**: Phase 4 - Auth UI and MCQ stub
 **Status**: COMPLETED
-**Next Steps**: Stop for review. After approval, start Phase 4 (auth UI and MCQ stub) with failing form tests first. Do not create migrations or deploy.
+**Next Steps**: Stop for review. After approval, start Phase 5 (full-suite verification, lint, build, and a manual walkthrough). Do not create migrations or deploy.
