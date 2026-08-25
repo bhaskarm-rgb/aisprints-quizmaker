@@ -253,7 +253,7 @@ export default defineConfig({
 - Migration file under `migrations/`
 - Local schema applied
 
-### Phase 2: User service and password hashing - PLANNED
+### Phase 2: User service and password hashing - COMPLETED
 
 **Objective**: Centralize all user persistence and share one hashing helper between the browser and the server.
 
@@ -456,6 +456,12 @@ deleteUser(id: string): Promise<void>
 
 `findUserByUsername` may include `password_hash` for login comparison. Map to `PublicUser` before any HTTP response.
 
+Implemented in `src/lib/services/user.ts`:
+- Unique D1 constraint failures become `UserConflictError` (for 409 in Phase 3)
+- Missing rows on update or delete become `UserNotFoundError`
+- `getCloudflareContext({ async: true })` is used so the service works in App Router
+- User-service tests mock that call with an in-memory `env.DB` (`src/lib/services/user.test.ts`)
+
 Mock Cloudflare and D1 at the module boundary. Never open a real database in unit tests:
 
 ```typescript
@@ -505,9 +511,11 @@ vi.mock("server-only", () => ({}));
 - [ ] Logout from `/mcqs` calls `POST /api/auth/logout` and returns the teacher to `/login`
 - [ ] `/mcqs` is a stub only: no question CRUD
 - [ ] No cookies, tokens, or session records are created
-- [ ] The user service can create, update, and delete users even though update and delete have no public endpoints yet
+- [x] The user service can create, update, and delete users even though update and delete have no public endpoints yet
+- [x] User service create, find, update, and delete pass against a mocked D1 (`src/lib/services/user.test.ts`)
 - [ ] Each phase's Vitest tests were written first, failed for the intended reason, then passed after implementation
 - [x] Phase 1 schema tests: red (no `DB` binding, no `migrations/`), then green after D1 + `0001_create_users.sql`
+- [x] Phase 2 hashing and user-service tests: red (missing modules), then green (`npm test` 14 passed)
 - [ ] `npm test` (Vitest) succeeds for schema, hashing, user service, auth routes, and auth UI
 - [ ] `npm run lint` and `npm run build` succeed
 
@@ -653,6 +661,6 @@ When working with this PRD:
 ## Current Status
 
 **Last Updated**: 2026-08-25
-**Current Phase**: Phase 1 - D1 and user schema
+**Current Phase**: Phase 2 - User service and password hashing
 **Status**: COMPLETED
-**Next Steps**: Stop for review. After approval, start Phase 2 (user service and password hashing) with failing Vitest tests first.
+**Next Steps**: Stop for review. After approval, start Phase 3 (auth API) with failing route-handler tests first. Do not create migrations or deploy.

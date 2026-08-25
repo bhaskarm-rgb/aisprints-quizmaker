@@ -21,8 +21,8 @@ built and for the current phase of work.
 - **Wrangler** for Cloudflare configuration, secrets, and deployment
 - **Vitest** for unit tests (`npm test`)
 
-No authentication, password hashing service, or AI SDK is installed yet. Do not write
-code that imports one without adding it first and telling the user.
+No authentication HTTP endpoints or AI SDK yet. Password hashing lives in
+`src/lib/hash-password.ts`. User persistence lives in `src/lib/services/user.ts`.
 
 ## Layout
 
