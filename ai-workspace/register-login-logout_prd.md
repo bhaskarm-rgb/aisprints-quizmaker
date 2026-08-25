@@ -286,7 +286,7 @@ export default defineConfig({
 - `src/lib/services/user.ts` and `src/lib/services/user.test.ts`
 - Create, update, and delete usable by later sprints
 
-### Phase 3: Auth API - PLANNED
+### Phase 3: Auth API - COMPLETED
 
 **Objective**: Expose register, login, and logout as HTTP POST endpoints.
 
@@ -391,6 +391,7 @@ export default defineConfig({
 - `migrations/0001_create_users.sql` - `users` table migration (applied locally only)
 - `src/lib/hash-password.ts` - shared SHA-256 hex helper (browser + Workers)
 - `src/lib/services/user.ts` - D1-backed create, find, update, delete
+- `src/lib/auth/schemas.ts` - Zod schemas for register and login bodies
 - `src/app/api/auth/register/route.ts` - register endpoint
 - `src/app/api/auth/login/route.ts` - login endpoint
 - `src/app/api/auth/logout/route.ts` - logout endpoint
@@ -462,6 +463,8 @@ Implemented in `src/lib/services/user.ts`:
 - `getCloudflareContext({ async: true })` is used so the service works in App Router
 - User-service tests mock that call with an in-memory `env.DB` (`src/lib/services/user.test.ts`)
 
+Auth route handlers (`src/app/api/auth/*/route.ts`) validate with Zod, call the user service, and never return `passwordHash`. Tests mock `@/lib/services/user` so they do not touch D1. Unknown username and wrong password both return `{ "error": "Invalid username or password" }`.
+
 Mock Cloudflare and D1 at the module boundary. Never open a real database in unit tests:
 
 ```typescript
@@ -486,7 +489,7 @@ vi.mock("server-only", () => ({}));
 
 - This is not a production auth system. SHA-256 without a salt is reversible-resistant but is not a password KDF. The client-side hash is the secret that travels over the wire; HTTPS is still required in any real deployment.
 - Do not import D1 or `getCloudflareContext()` into a `'use client'` module. Only the hashing helper is shared.
-- Ask before adding Zod. It is the planned validator because App Router rules require schema validation of every request body.
+- Ask before adding a dependency other than those already authorized (Vitest packages, Zod). Zod is installed and used for auth request bodies.
 - `npm run dev` runs on Node and will not catch Workers-only D1 issues. Confirm auth against D1 with `npm run preview` or local Wrangler migration + a path that actually uses `env.DB`.
 - Never run `npx wrangler d1 migrations apply` with `--remote`.
 - Never run `npm run deploy` unless explicitly asked.
@@ -506,8 +509,10 @@ vi.mock("server-only", () => ({}));
 - [ ] The register and login POSTs send the hash, not the plaintext password
 - [ ] A teacher can log in with username and password and is taken to `/mcqs`
 - [ ] A duplicate username or email is rejected with 409 and a clear form error
-- [ ] A wrong username or password is rejected with 401 and the same generic message
-- [ ] Missing or invalid fields are rejected with 400 before any write
+- [x] POST /api/auth/register returns 409 when the user service throws UserConflictError
+- [x] A wrong username or password is rejected with 401 and the same generic message
+- [x] Missing or invalid fields are rejected with 400 before any write
+- [x] Phase 3 route tests: red (missing route modules), then green (`npm test` 24 passed)
 - [ ] Logout from `/mcqs` calls `POST /api/auth/logout` and returns the teacher to `/login`
 - [ ] `/mcqs` is a stub only: no question CRUD
 - [ ] No cookies, tokens, or session records are created
@@ -540,7 +545,7 @@ vi.mock("server-only", () => ({}));
 
 - Cloudflare D1 — user persistence (must be created and bound; not present today)
 - Web Crypto API — SHA-256 in the browser and on Workers
-- Zod — request and form validation (not installed; propose before adding)
+- Zod — request and form validation (installed; used by auth route handlers)
 - Vitest — unit test runner (not installed; authorized by this PRD)
 - Testing Library + jsdom — client-component tests (installed with Vitest per the testing skill)
 
@@ -650,7 +655,7 @@ When working with this PRD:
 6. Add troubleshooting entries when bugs are found and fixed
 7. Keep all sections current - remove outdated information
 8. Use code references format: `filepath:line-number` when citing code
-9. Ask before adding Zod or any other dependency other than the Vitest packages authorized above
+9. Ask before adding a dependency other than Vitest packages and Zod (already added)
 10. Do not apply D1 migrations remotely and do not deploy
 11. Do not add cookies, tokens, sessions, or MCQ persistence in this sprint
 12. Follow TDD per phase: write tests, run them red, implement, run them green. Do not mark a phase COMPLETED while its tests are missing or failing
@@ -661,6 +666,6 @@ When working with this PRD:
 ## Current Status
 
 **Last Updated**: 2026-08-25
-**Current Phase**: Phase 2 - User service and password hashing
+**Current Phase**: Phase 3 - Auth API
 **Status**: COMPLETED
-**Next Steps**: Stop for review. After approval, start Phase 3 (auth API) with failing route-handler tests first. Do not create migrations or deploy.
+**Next Steps**: Stop for review. After approval, start Phase 4 (auth UI and MCQ stub) with failing form tests first. Do not create migrations or deploy.

@@ -21,7 +21,8 @@ built and for the current phase of work.
 - **Wrangler** for Cloudflare configuration, secrets, and deployment
 - **Vitest** for unit tests (`npm test`)
 
-No authentication HTTP endpoints or AI SDK yet. Password hashing lives in
+No AI SDK yet. Auth HTTP endpoints live under `src/app/api/auth/`. Request bodies are
+validated with Zod (`src/lib/auth/schemas.ts`). Password hashing lives in
 `src/lib/hash-password.ts`. User persistence lives in `src/lib/services/user.ts`.
 
 ## Layout
