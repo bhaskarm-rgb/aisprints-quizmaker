@@ -1,0 +1,18 @@
+---
+description: After each implementation phase, wait for confirmation before commit, push, and deploy
+alwaysApply: true
+---
+
+# Phase completion: confirm, then ship
+
+When a PRD implementation phase is complete (tests were red, then green, phase gate met):
+
+1. **Stop.** Summarize what landed. Do not start the next phase.
+2. **Ask** for confirmation before `git commit`, `git push`, and `npm run deploy`.
+3. **Only after an explicit yes**, commit on the feature branch, push, deploy, and report the commit hash and deploy URL.
+
+Do not commit, push, or deploy a finished phase on your own. Updating the PRD status is fine before the ask; shipping is not.
+
+If the same message that finishes the phase also says to commit and deploy, that counts as confirmation.
+
+Never apply D1 migrations with `--remote` unless the user explicitly asks.
