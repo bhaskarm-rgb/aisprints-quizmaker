@@ -263,7 +263,7 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 **Phase gate**: Service tests green; prior tests green.
 
-### Phase 3: MCQ API - PLANNED
+### Phase 3: MCQ API - COMPLETED
 
 **Objective**: Expose list, create, read, update, and delete over HTTP.
 
@@ -331,10 +331,10 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 - `src/lib/db/mcqs-schema.test.ts` - migration contract for `mcqs`, `mcq_choices`, and `mcq_attempts`
 - `src/lib/services/mcq.ts` - create, list, get, update, and delete for questions and choices
 - `src/lib/services/mcq.test.ts` - mocked D1 tests for the MCQ service
-- `src/lib/mcq/schemas.ts` - Zod bodies for create, update, and attempt
+- `src/lib/mcq/schemas.ts` - Zod bodies for create and update
 - `src/lib/current-user.ts` - `localStorage` read/write for the logged-in user
-- `src/app/api/mcqs/handler.ts` - list and create
-- `src/app/api/mcqs/[id]/handler.ts` - read, update, delete
+- `src/app/api/mcqs/handler.ts` - GET list and POST create
+- `src/app/api/mcqs/[id]/handler.ts` - GET, PUT, and DELETE one question
 - `src/app/api/mcqs/[id]/attempts/handler.ts` - record an attempt
 - `src/app/mcqs/page.tsx` - question bank table
 - `src/app/mcqs/new/page.tsx`, `src/app/mcqs/[id]/edit/page.tsx` - editor shells
@@ -507,13 +507,12 @@ When working with this PRD:
 ## Current Status
 
 **Last Updated**: 2026-08-30
-**Current Phase**: Phase 2 - MCQ service
+**Current Phase**: Phase 3 - MCQ API
 **Status**: COMPLETED
 **Branch**: `feature/mcq-crud`
 
 **Verification**:
-- Service tests: red (`Cannot find package '@/lib/services/mcq'`), then green
-- `npm test`: 46 passed (11 files)
-- Local D1: `0002_create_mcqs.sql` applied (Phase 1)
+- Route tests: red (missing `./handler` modules), then green
+- `npm test`: 62 passed (13 files)
 
-**Next Steps**: Await go-ahead for Phase 3 (MCQ API).
+**Next Steps**: Await go-ahead for Phase 4 (attempts).
