@@ -253,7 +253,7 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 **Phase gate**: Schema tests green; auth tests still green.
 
-### Phase 2: MCQ service - PLANNED
+### Phase 2: MCQ service - COMPLETED
 
 **Objective**: Own all MCQ and choice SQL in one module.
 
@@ -329,7 +329,8 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 - `migrations/0002_create_mcqs.sql` - the three MCQ tables (applied locally)
 - `src/lib/db/mcqs-schema.test.ts` - migration contract for `mcqs`, `mcq_choices`, and `mcq_attempts`
-- `src/lib/services/mcq.ts` - all MCQ, choice, and attempt persistence
+- `src/lib/services/mcq.ts` - create, list, get, update, and delete for questions and choices
+- `src/lib/services/mcq.test.ts` - mocked D1 tests for the MCQ service
 - `src/lib/mcq/schemas.ts` - Zod bodies for create, update, and attempt
 - `src/lib/current-user.ts` - `localStorage` read/write for the logged-in user
 - `src/app/api/mcqs/handler.ts` - list and create
@@ -506,13 +507,13 @@ When working with this PRD:
 ## Current Status
 
 **Last Updated**: 2026-08-30
-**Current Phase**: Phase 1 - MCQ schema
+**Current Phase**: Phase 2 - MCQ service
 **Status**: COMPLETED
 **Branch**: `feature/mcq-crud`
 
 **Verification**:
-- Schema tests: red (`CREATE TABLE mcqs not found`), then green
-- `npm test`: 37 passed (10 files) — 4 new schema tests, 33 auth tests still green
-- Local D1: `0002_create_mcqs.sql` applied
+- Service tests: red (`Cannot find package '@/lib/services/mcq'`), then green
+- `npm test`: 46 passed (11 files)
+- Local D1: `0002_create_mcqs.sql` applied (Phase 1)
 
-**Next Steps**: Await go-ahead for Phase 2 (MCQ service).
+**Next Steps**: Await go-ahead for Phase 3 (MCQ API).
