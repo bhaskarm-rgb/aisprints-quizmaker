@@ -243,7 +243,7 @@ Same discipline as the auth sprint. Every phase is red → green. Do not write p
 
 Each phase ends with: green suite, commit, push, deploy, and the hash reported back. Do not start the next phase without an explicit go-ahead.
 
-### Phase 1: MCQ schema - PLANNED
+### Phase 1: MCQ schema - COMPLETED
 
 **Objective**: Add the three tables to local D1.
 
@@ -327,7 +327,8 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 ### Key Files
 
-- `migrations/0002_create_mcqs.sql` - the three MCQ tables (local apply only)
+- `migrations/0002_create_mcqs.sql` - the three MCQ tables (applied locally)
+- `src/lib/db/mcqs-schema.test.ts` - migration contract for `mcqs`, `mcq_choices`, and `mcq_attempts`
 - `src/lib/services/mcq.ts` - all MCQ, choice, and attempt persistence
 - `src/lib/mcq/schemas.ts` - Zod bodies for create, update, and attempt
 - `src/lib/current-user.ts` - `localStorage` read/write for the logged-in user
@@ -506,7 +507,12 @@ When working with this PRD:
 
 **Last Updated**: 2026-08-30
 **Current Phase**: Phase 1 - MCQ schema
-**Status**: PLANNED
-**Branch**: `feature/mcq-crud` (not yet created)
+**Status**: COMPLETED
+**Branch**: `feature/mcq-crud`
 
-**Next Steps**: Await go-ahead, create the branch, then start Phase 1 with a failing `src/lib/db/mcqs-schema.test.ts`.
+**Verification**:
+- Schema tests: red (`CREATE TABLE mcqs not found`), then green
+- `npm test`: 37 passed (10 files) — 4 new schema tests, 33 auth tests still green
+- Local D1: `0002_create_mcqs.sql` applied
+
+**Next Steps**: Await go-ahead for Phase 2 (MCQ service).
