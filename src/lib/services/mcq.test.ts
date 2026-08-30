@@ -58,6 +58,12 @@ function createStatement(sql: string, values: unknown[]) {
 				return { results: [row] as T[] };
 			}
 
+			if (/INSERT\s+INTO\s+mcq_attempts\b/i.test(sql)) {
+				insertAttempt(values);
+				const row = attempts[attempts.length - 1];
+				return { results: [row] as T[] };
+			}
+
 			if (/UPDATE\s+mcqs\b/i.test(sql)) {
 				const [name, question, id] = values as string[];
 				const row = mcqs.find((mcq) => mcq.id === id);
@@ -120,6 +126,12 @@ function createStatement(sql: string, values: unknown[]) {
 				return { results: rows as T[] };
 			}
 
+			if (/SELECT\s+/i.test(sql) && /FROM\s+mcq_choices\b/i.test(sql) && /WHERE\s+id\s*=/i.test(sql)) {
+				const [id] = values as string[];
+				const row = choices.find((choice) => choice.id === id);
+				return { results: row ? [row as T] : [] };
+			}
+
 			if (/SELECT\s+/i.test(sql) && /FROM\s+mcq_choices\b/i.test(sql)) {
 				const [mcqId] = values as string[];
 				const rows = choices
@@ -140,6 +152,8 @@ function createStatement(sql: string, values: unknown[]) {
 				changes = mcqs.length > beforeMcqs ? 1 : 0;
 			} else if (/INSERT\s+INTO\s+mcq_choices\b/i.test(sql)) {
 				changes = choices.length > beforeChoices ? 1 : 0;
+			} else if (/INSERT\s+INTO\s+mcq_attempts\b/i.test(sql)) {
+				changes = attempts.length > beforeAttempts ? 1 : 0;
 			} else if (/DELETE\s+FROM\s+mcq_attempts\b/i.test(sql)) {
 				changes = beforeAttempts - attempts.length;
 			} else if (/DELETE\s+FROM\s+mcq_choices\b/i.test(sql)) {
@@ -198,6 +212,23 @@ function insertChoice(values: unknown[]) {
 	});
 }
 
+function insertAttempt(values: unknown[]) {
+	const [id, mcqId, userId, choiceId, isCorrect] = values as [
+		string,
+		string,
+		string,
+		string,
+		number,
+	];
+	attempts.push({
+		id,
+		mcq_id: mcqId,
+		user_id: userId,
+		choice_id: choiceId,
+		is_correct: Number(isCorrect),
+	});
+}
+
 function createMockDb() {
 	return {
 		prepare(sql: string) {
@@ -230,9 +261,11 @@ import {
 	deleteMcq,
 	getMcq,
 	listMcqs,
+	McqChoiceMismatchError,
 	McqNotFoundError,
 	McqUserNotFoundError,
 	McqValidationError,
+	recordAttempt,
 	updateMcq,
 } from "@/lib/services/mcq";
 
@@ -441,5 +474,75 @@ describe("mcq service", () => {
 
 	it("throws when deleting a missing question", async () => {
 		await expect(deleteMcq("missing-id")).rejects.toBeInstanceOf(McqNotFoundError);
+	});
+
+	it("records an attempt and derives correctness from the stored choice", async () => {
+		const created = await createMcq(validInput);
+		const wrong = created.choices.find((choice) => !choice.isCorrect);
+		const right = created.choices.find((choice) => choice.isCorrect);
+
+		const incorrect = await recordAttempt({
+			mcqId: created.id,
+			userId: teacherId,
+			choiceId: wrong!.id,
+		});
+		const correct = await recordAttempt({
+			mcqId: created.id,
+			userId: teacherId,
+			choiceId: right!.id,
+		});
+
+		expect(incorrect).toMatchObject({
+			mcqId: created.id,
+			choiceId: wrong!.id,
+			isCorrect: false,
+		});
+		expect(correct.isCorrect).toBe(true);
+		expect(attempts).toHaveLength(2);
+		expect(attempts[0].is_correct).toBe(0);
+		expect(attempts[1].is_correct).toBe(1);
+	});
+
+	it("rejects a choice that belongs to a different question", async () => {
+		const first = await createMcq(validInput);
+		const second = await createMcq({
+			...validInput,
+			name: "Largest planet",
+			question: "Which planet is the largest?",
+		});
+
+		await expect(
+			recordAttempt({
+				mcqId: first.id,
+				userId: teacherId,
+				choiceId: second.choices[0].id,
+			}),
+		).rejects.toBeInstanceOf(McqChoiceMismatchError);
+
+		expect(attempts).toHaveLength(0);
+	});
+
+	it("rejects an attempt from an unknown user", async () => {
+		const created = await createMcq(validInput);
+
+		await expect(
+			recordAttempt({
+				mcqId: created.id,
+				userId: "missing-user",
+				choiceId: created.choices[0].id,
+			}),
+		).rejects.toBeInstanceOf(McqUserNotFoundError);
+
+		expect(attempts).toHaveLength(0);
+	});
+
+	it("rejects an attempt against a missing question", async () => {
+		await expect(
+			recordAttempt({
+				mcqId: "missing-mcq",
+				userId: teacherId,
+				choiceId: "choice-1",
+			}),
+		).rejects.toBeInstanceOf(McqNotFoundError);
 	});
 });

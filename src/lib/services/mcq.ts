@@ -21,6 +21,13 @@ export class McqUserNotFoundError extends Error {
 	}
 }
 
+export class McqChoiceMismatchError extends Error {
+	constructor(message = "Choice does not belong to this question") {
+		super(message);
+		this.name = "McqChoiceMismatchError";
+	}
+}
+
 export type McqChoiceInput = {
 	text: string;
 	isCorrect: boolean;
@@ -61,6 +68,19 @@ export type UpdateMcqInput = {
 	name: string;
 	question: string;
 	choices: McqChoiceInput[];
+};
+
+export type RecordAttemptInput = {
+	mcqId: string;
+	userId: string;
+	choiceId: string;
+};
+
+export type McqAttempt = {
+	id: string;
+	mcqId: string;
+	choiceId: string;
+	isCorrect: boolean;
 };
 
 type McqRow = {
@@ -275,4 +295,46 @@ export async function deleteMcq(id: string): Promise<void> {
 		db.prepare("DELETE FROM mcq_choices WHERE mcq_id = ?1").bind(id),
 		db.prepare("DELETE FROM mcqs WHERE id = ?1").bind(id),
 	]);
+}
+
+export async function recordAttempt(input: RecordAttemptInput): Promise<McqAttempt> {
+	const db = await getDb();
+
+	const question = await findMcqRow(db, input.mcqId);
+	if (!question) {
+		throw new McqNotFoundError();
+	}
+
+	if (!(await userExists(db, input.userId))) {
+		throw new McqUserNotFoundError();
+	}
+
+	const { results } = await db
+		.prepare(
+			"SELECT id, mcq_id, choice_text, is_correct, position FROM mcq_choices WHERE id = ?1",
+		)
+		.bind(input.choiceId)
+		.all<ChoiceRow>();
+
+	const choice = results[0];
+	if (!choice || choice.mcq_id !== input.mcqId) {
+		throw new McqChoiceMismatchError();
+	}
+
+	const id = crypto.randomUUID();
+	const isCorrect = Boolean(choice.is_correct);
+
+	await db
+		.prepare(
+			"INSERT INTO mcq_attempts (id, mcq_id, user_id, choice_id, is_correct) VALUES (?1, ?2, ?3, ?4, ?5)",
+		)
+		.bind(id, input.mcqId, input.userId, input.choiceId, isCorrect ? 1 : 0)
+		.run();
+
+	return {
+		id,
+		mcqId: input.mcqId,
+		choiceId: input.choiceId,
+		isCorrect,
+	};
 }

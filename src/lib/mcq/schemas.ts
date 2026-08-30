@@ -28,3 +28,10 @@ export const updateMcqBodySchema = z.object({
 
 export type CreateMcqBody = z.infer<typeof createMcqBodySchema>;
 export type UpdateMcqBody = z.infer<typeof updateMcqBodySchema>;
+
+export const recordAttemptBodySchema = z.object({
+	userId: z.string().trim().min(1),
+	choiceId: z.string().trim().min(1),
+});
+
+export type RecordAttemptBody = z.infer<typeof recordAttemptBodySchema>;

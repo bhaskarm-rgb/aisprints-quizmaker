@@ -273,7 +273,7 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 **Phase gate**: Route tests green; prior tests green.
 
-### Phase 4: Attempts - PLANNED
+### Phase 4: Attempts - COMPLETED
 
 **Objective**: Record and score a single answer server-side.
 
@@ -329,13 +329,13 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 - `migrations/0002_create_mcqs.sql` - the three MCQ tables (applied locally)
 - `src/lib/db/mcqs-schema.test.ts` - migration contract for `mcqs`, `mcq_choices`, and `mcq_attempts`
-- `src/lib/services/mcq.ts` - create, list, get, update, and delete for questions and choices
+- `src/lib/services/mcq.ts` - create, list, get, update, delete, and `recordAttempt`
 - `src/lib/services/mcq.test.ts` - mocked D1 tests for the MCQ service
-- `src/lib/mcq/schemas.ts` - Zod bodies for create and update
+- `src/lib/mcq/schemas.ts` - Zod bodies for create, update, and attempt
 - `src/lib/current-user.ts` - `localStorage` read/write for the logged-in user
 - `src/app/api/mcqs/handler.ts` - GET list and POST create
 - `src/app/api/mcqs/[id]/handler.ts` - GET, PUT, and DELETE one question
-- `src/app/api/mcqs/[id]/attempts/handler.ts` - record an attempt
+- `src/app/api/mcqs/[id]/attempts/handler.ts` - POST record an attempt
 - `src/app/mcqs/page.tsx` - question bank table
 - `src/app/mcqs/new/page.tsx`, `src/app/mcqs/[id]/edit/page.tsx` - editor shells
 - `src/app/mcqs/[id]/preview/page.tsx` - preview shell
@@ -507,12 +507,12 @@ When working with this PRD:
 ## Current Status
 
 **Last Updated**: 2026-08-30
-**Current Phase**: Phase 3 - MCQ API
+**Current Phase**: Phase 4 - Attempts
 **Status**: COMPLETED
 **Branch**: `feature/mcq-crud`
 
 **Verification**:
-- Route tests: red (missing `./handler` modules), then green
-- `npm test`: 62 passed (13 files)
+- Attempt tests: red (`recordAttempt is not a function`, missing handler), then green
+- `npm test`: 71 passed (14 files)
 
-**Next Steps**: Await go-ahead for Phase 4 (attempts).
+**Next Steps**: Await confirmation to commit, push, and deploy Phase 4. Then Phase 5 (question bank table).
