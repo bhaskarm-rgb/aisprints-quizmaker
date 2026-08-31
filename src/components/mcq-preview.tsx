@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -23,7 +23,9 @@ type McqPreviewProps = {
 };
 
 export function McqPreview({ mcq }: McqPreviewProps) {
+	const router = useRouter();
 	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const [submittedChoiceId, setSubmittedChoiceId] = useState<string | null>(null);
 	const [pending, setPending] = useState(false);
 	const [result, setResult] = useState<boolean | null>(null);
 	const [formError, setFormError] = useState<string | null>(null);
@@ -61,6 +63,7 @@ export function McqPreview({ mcq }: McqPreviewProps) {
 				return;
 			}
 
+			setSubmittedChoiceId(selectedId);
 			setResult(Boolean(body?.isCorrect));
 		} finally {
 			setPending(false);
@@ -74,11 +77,15 @@ export function McqPreview({ mcq }: McqPreviewProps) {
 			<RadioGroup
 				value={selectedId ?? ""}
 				onValueChange={(value) => {
-					if (value) {
-						setSelectedId(value);
+					if (!value) {
+						return;
+					}
+					setSelectedId(value);
+					if (value !== submittedChoiceId) {
+						setResult(null);
 					}
 				}}
-				disabled={result !== null}
+				disabled={pending}
 			>
 				{mcq.choices.map((choice) => (
 					<label key={choice.id} className="flex items-center gap-2 text-sm">
@@ -87,16 +94,20 @@ export function McqPreview({ mcq }: McqPreviewProps) {
 					</label>
 				))}
 			</RadioGroup>
-			{result === null ? (
-				<Button type="submit" disabled={!selectedId || pending}>
+			{result !== null ? (
+				<p className="text-sm font-medium">{result ? "Correct" : "Incorrect"}</p>
+			) : null}
+			<div className="flex gap-2">
+				<Button
+					type="submit"
+					disabled={!selectedId || pending || selectedId === submittedChoiceId}
+				>
 					Submit
 				</Button>
-			) : (
-				<div className="flex flex-col gap-3">
-					<p className="text-sm font-medium">{result ? "Correct" : "Incorrect"}</p>
-					<Link href="/mcqs">Back to question bank</Link>
-				</div>
-			)}
+				<Button type="button" variant="outline" onClick={() => router.push("/mcqs")}>
+					Back to questions
+				</Button>
+			</div>
 		</form>
 	);
 }
