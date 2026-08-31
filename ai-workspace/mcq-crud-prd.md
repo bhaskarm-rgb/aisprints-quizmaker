@@ -303,7 +303,7 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 **Phase gate**: Editor tests green; prior tests green.
 
-### Phase 7: Preview and attempts UI - PLANNED
+### Phase 7: Preview and attempts UI - COMPLETED
 
 **Objective**: Answer a question and see the result.
 
@@ -343,8 +343,8 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 - `src/app/mcqs/new/page.tsx` - create page
 - `src/app/mcqs/[id]/edit/page.tsx` - edit page (loads via GET)
 - `src/components/mcq-form.tsx` - shared create/edit form
-- `src/app/mcqs/[id]/preview/page.tsx` - preview shell
-- `src/components/mcq-preview.tsx` - later-phase client component
+- `src/app/mcqs/[id]/preview/page.tsx` - preview page
+- `src/components/mcq-preview.tsx` - student-facing preview; correctness comes from the attempt API
 - Colocated `*.test.ts` / `*.test.tsx` beside each of the above
 
 ### Implementation Patterns
@@ -518,12 +518,12 @@ When working with this PRD:
 ## Current Status
 
 **Last Updated**: 2026-08-31
-**Current Phase**: Phase 6 - MCQ editor
+**Current Phase**: Phase 7 - Preview and attempts UI
 **Status**: COMPLETED
 **Branch**: `feature/mcq-crud`
 
 **Verification**:
-- Editor tests: red (missing `./mcq-form`), then green
-- `npm test`: 91 passed (17 files)
+- Preview tests: red (missing `./mcq-preview`), then green
+- `npm test`: 94 passed (18 files)
 
-**Next Steps**: Await confirmation to commit, push, and deploy Phase 6. Then Phase 7 (preview).
+**Next Steps**: Await confirmation to commit, push, and deploy Phase 7. Then Phase 8 (verification).
