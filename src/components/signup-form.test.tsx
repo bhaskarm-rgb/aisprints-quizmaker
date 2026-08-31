@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { hashPassword } from "@/lib/hash-password";
+import { getCurrentUser } from "@/lib/current-user";
 import { SignupForm } from "./signup-form";
 
 const push = vi.fn();
@@ -35,6 +36,7 @@ describe("SignupForm", () => {
 	beforeEach(() => {
 		push.mockReset();
 		vi.unstubAllGlobals();
+		window.localStorage.clear();
 	});
 
 	it("renders first name, last name, username, email, password, and confirm password", () => {
@@ -94,6 +96,7 @@ describe("SignupForm", () => {
 			email: "jane@school.edu",
 		});
 		expect(push).toHaveBeenCalledWith("/mcqs");
+		expect(getCurrentUser()).toMatchObject({ id: "user-1", username: "jane@school.edu" });
 	});
 
 	it("shows a form-level error on 409", async () => {

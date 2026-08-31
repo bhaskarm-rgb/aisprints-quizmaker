@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LogoutButton } from "./logout-button";
+import { setCurrentUser } from "@/lib/current-user";
 
 const push = vi.fn();
 
@@ -13,6 +14,7 @@ describe("LogoutButton", () => {
 	beforeEach(() => {
 		push.mockReset();
 		vi.unstubAllGlobals();
+		window.localStorage.clear();
 	});
 
 	it("POSTs /api/auth/logout then navigates to /login", async () => {
@@ -23,6 +25,13 @@ describe("LogoutButton", () => {
 			json: async () => ({ ok: true }),
 		});
 		vi.stubGlobal("fetch", fetchMock);
+		setCurrentUser({
+			id: "user-1",
+			firstName: "Jane",
+			lastName: "Doe",
+			username: "jane@school.edu",
+			email: "jane@school.edu",
+		});
 		render(<LogoutButton />);
 
 		await user.click(screen.getByRole("button", { name: /log out/i }));
@@ -34,5 +43,6 @@ describe("LogoutButton", () => {
 			),
 		);
 		expect(push).toHaveBeenCalledWith("/login");
+		expect(window.localStorage.getItem("quizmaker.currentUser")).toBeNull();
 	});
 });

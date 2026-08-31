@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { clearCurrentUser } from "@/lib/current-user";
 
 export function LogoutButton() {
 	const router = useRouter();
@@ -12,6 +13,7 @@ export function LogoutButton() {
 		setPending(true);
 		try {
 			await fetch("/api/auth/logout", { method: "POST" });
+			clearCurrentUser();
 			router.push("/login");
 		} finally {
 			setPending(false);

@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { hashPassword } from "@/lib/hash-password";
+import { getCurrentUser } from "@/lib/current-user";
 import { LoginForm } from "./login-form";
 
 const push = vi.fn();
@@ -14,6 +15,7 @@ describe("LoginForm", () => {
 	beforeEach(() => {
 		push.mockReset();
 		vi.unstubAllGlobals();
+		window.localStorage.clear();
 	});
 
 	it("POSTs a hashed password and navigates to /mcqs on 200", async () => {
@@ -45,6 +47,7 @@ describe("LoginForm", () => {
 		expect(body.password).toBe(await hashPassword("password123"));
 		expect(body.password).not.toBe("password123");
 		expect(push).toHaveBeenCalledWith("/mcqs");
+		expect(getCurrentUser()).toMatchObject({ id: "user-1", username: "jane@school.edu" });
 	});
 
 	it("shows a generic error on 401 that does not mention whether the username exists", async () => {

@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { hashPassword } from "@/lib/hash-password";
 import { registerFormSchema } from "@/lib/auth/schemas";
+import { setCurrentUser } from "@/lib/current-user";
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
 	const router = useRouter();
@@ -66,6 +67,14 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
 			});
 
 			if (response.status === 201) {
+				const user = (await response.json()) as {
+					id: string;
+					firstName: string;
+					lastName: string;
+					username: string;
+					email: string;
+				};
+				setCurrentUser(user);
 				router.push("/mcqs");
 				return;
 			}

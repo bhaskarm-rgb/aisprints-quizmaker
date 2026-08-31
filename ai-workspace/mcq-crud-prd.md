@@ -283,7 +283,7 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 **Phase gate**: Attempt tests green; prior tests green.
 
-### Phase 5: Question bank table - PLANNED
+### Phase 5: Question bank table - COMPLETED
 
 **Objective**: Replace the stub with a real list.
 
@@ -332,14 +332,17 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 - `src/lib/services/mcq.ts` - create, list, get, update, delete, and `recordAttempt`
 - `src/lib/services/mcq.test.ts` - mocked D1 tests for the MCQ service
 - `src/lib/mcq/schemas.ts` - Zod bodies for create, update, and attempt
-- `src/lib/current-user.ts` - `localStorage` read/write for the logged-in user
 - `src/app/api/mcqs/handler.ts` - GET list and POST create
 - `src/app/api/mcqs/[id]/handler.ts` - GET, PUT, and DELETE one question
 - `src/app/api/mcqs/[id]/attempts/handler.ts` - POST record an attempt
-- `src/app/mcqs/page.tsx` - question bank table
+- `src/lib/current-user.ts` - `window.localStorage` helper for the logged-in user
+- `src/test/setup.ts` - jsdom `localStorage` polyfill for Vitest on Node 26
+- `src/components/mcq-table.tsx` - question bank table, actions menu, delete confirmation
+- `src/components/mcq-bank.tsx` - fetches `/api/mcqs` and feeds the table
+- `src/app/mcqs/page.tsx` - question bank page
 - `src/app/mcqs/new/page.tsx`, `src/app/mcqs/[id]/edit/page.tsx` - editor shells
 - `src/app/mcqs/[id]/preview/page.tsx` - preview shell
-- `src/components/mcq-table.tsx`, `mcq-form.tsx`, `mcq-preview.tsx` - client components
+- `src/components/mcq-form.tsx`, `mcq-preview.tsx` - later-phase client components
 - Colocated `*.test.ts` / `*.test.tsx` beside each of the above
 
 ### Implementation Patterns
@@ -484,6 +487,12 @@ export async function GET(
 
 Populate as issues surface. Anything longer than a few lines belongs in `ai-workspace/mcq-crud_runbook.md`.
 
+### Node 26 `localStorage` is undefined in Vitest
+**Problem**: `localStorage.clear()` throws `Cannot read properties of undefined`.
+**Cause**: Node 26 exposes a global `localStorage` that is undefined unless `--localstorage-file` is set, and that shadows jsdom's storage.
+**Solution**: Use `window.localStorage` in app code. Polyfill it in `src/test/setup.ts` for jsdom tests.
+**Code Reference**: `src/lib/current-user.ts`, `src/test/setup.ts`
+
 ---
 
 ## Notes for AI Agents
@@ -507,12 +516,12 @@ When working with this PRD:
 ## Current Status
 
 **Last Updated**: 2026-08-30
-**Current Phase**: Phase 4 - Attempts
+**Current Phase**: Phase 5 - Question bank table
 **Status**: COMPLETED
 **Branch**: `feature/mcq-crud`
 
 **Verification**:
-- Attempt tests: red (`recordAttempt is not a function`, missing handler), then green
-- `npm test`: 71 passed (14 files)
+- Table and current-user tests: red (missing modules), then green
+- `npm test`: 80 passed (16 files)
 
-**Next Steps**: Await confirmation to commit, push, and deploy Phase 4. Then Phase 5 (question bank table).
+**Next Steps**: Await confirmation to commit, push, and deploy Phase 5. Then Phase 6 (MCQ editor).

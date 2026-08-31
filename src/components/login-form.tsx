@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { hashPassword } from "@/lib/hash-password";
 import { loginFormSchema } from "@/lib/auth/schemas";
+import { setCurrentUser } from "@/lib/current-user";
 
 export function LoginForm({
 	className,
@@ -58,6 +59,14 @@ export function LoginForm({
 			});
 
 			if (response.status === 200) {
+				const user = (await response.json()) as {
+					id: string;
+					firstName: string;
+					lastName: string;
+					username: string;
+					email: string;
+				};
+				setCurrentUser(user);
 				router.push("/mcqs");
 				return;
 			}
