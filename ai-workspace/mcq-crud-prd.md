@@ -1,5 +1,5 @@
 Date created: 2026-08-30
-Date last modified: 2026-08-30
+Date last modified: 2026-08-31
 
 # MCQ Create, Update, and Delete - Technical PRD
 
@@ -313,11 +313,19 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 **Phase gate**: Preview tests green; prior tests green.
 
-### Phase 8: Verification - PLANNED
+### Phase 8: Verification - COMPLETED
 
 **Objective**: Prove the whole loop before calling the sprint done.
 
 **Checks**: Full `npm test` green with no hollow tests; `npm run lint` and `npm run build` exit 0; manual walkthrough of login → create → list → edit → preview → delete; local D1 row counts confirm cascade deletion left no orphan choices or attempts.
+
+**Recorded results (2026-08-31)**:
+- `npm test`: **94 passed** (18 files)
+- `npm run lint`: first run exit 0 with one warning (`_request` unused on list GET). Removed the unused param from `src/app/api/mcqs/handler.ts`; retry **exit 0, 0 warnings**
+- `npm run build`: **exit 0** (Next.js 16.2.12). Routes include `/mcqs`, `/mcqs/new`, `/mcqs/[id]/edit`, `/mcqs/[id]/preview`, and the MCQ API handlers
+- User confirmed create → edit → preview → delete locally, including the question bank table
+- Local D1 counts (no emails or hashes selected): `mcq_count=0`, `choice_count=0`, `attempt_count=0`, `orphan_choices=0`, `orphan_attempts=0`, `bad_correct_count=0`, `orphan_authors=0`, `user_count=5`. Empty MCQ tables after the delete walkthrough; 0 orphans
+- Remote D1: `npx wrangler d1 migrations apply quizmaker --remote` applied `0002_create_mcqs.sql` (✅). Tables present (`has_mcqs=1`, `has_choices=1`, `has_attempts=1`); `mcq_count=0`, `choice_count=0`, `attempt_count=0`. Worker version `9c14bc65-b7f2-4adc-97e9-4973b5345169` at https://quizmaker.bhaskar-m.workers.dev
 
 **Phase gate**: All three commands succeed and the manual path matches the tests.
 
@@ -327,7 +335,7 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 ### Key Files
 
-- `migrations/0002_create_mcqs.sql` - the three MCQ tables (applied locally)
+- `migrations/0002_create_mcqs.sql` - the three MCQ tables (applied locally and remotely)
 - `src/lib/db/mcqs-schema.test.ts` - migration contract for `mcqs`, `mcq_choices`, and `mcq_attempts`
 - `src/lib/services/mcq.ts` - create, list, get, update, delete, and `recordAttempt`
 - `src/lib/services/mcq.test.ts` - mocked D1 tests for the MCQ service
@@ -399,22 +407,22 @@ export async function GET(
 
 ## Acceptance Criteria
 
-- [ ] A teacher can create a question with a name, a question prompt, and 2–6 choices
-- [ ] Name and question are both required; an empty either one is rejected before the write
-- [ ] Exactly one choice must be marked correct; anything else is rejected before the write
-- [ ] Adding a seventh choice is not possible, and removing below two is not possible
-- [ ] `/mcqs` lists every question with name, question, and choice count
-- [ ] Each row's three-dot menu offers Edit, Preview, and Delete
-- [ ] Edit preloads the existing question and its choices and saves changes with PUT
-- [ ] Cancel leaves the question unchanged
-- [ ] Delete asks for confirmation, then removes the question, its choices, and its attempts
-- [ ] Preview shows the question without revealing the answer, and reveals correctness only after submit
-- [ ] Submitting a preview writes a row to `mcq_attempts` with the selected choice and server-derived correctness
-- [ ] `mcqs.created_by_user_id` and `mcq_attempts.user_id` hold real ids from the `users` table
-- [ ] Invalid bodies return 400 and unknown ids return 404, with no partial writes
-- [ ] Each phase's tests were written first, ran red for the intended reason, then went green
-- [ ] The 33 existing auth tests stay green throughout
-- [ ] `npm test`, `npm run lint`, and `npm run build` all succeed
+- [x] A teacher can create a question with a name, a question prompt, and 2–6 choices
+- [x] Name and question are both required; an empty either one is rejected before the write
+- [x] Exactly one choice must be marked correct; anything else is rejected before the write
+- [x] Adding a seventh choice is not possible, and removing below two is not possible
+- [x] `/mcqs` lists every question with name, question, and choice count
+- [x] Each row's three-dot menu offers Edit, Preview, and Delete
+- [x] Edit preloads the existing question and its choices and saves changes with PUT
+- [x] Cancel leaves the question unchanged
+- [x] Delete asks for confirmation, then removes the question, its choices, and its attempts
+- [x] Preview shows the question without revealing the answer, and reveals correctness only after submit
+- [x] Submitting a preview writes a row to `mcq_attempts` with the selected choice and server-derived correctness
+- [x] `mcqs.created_by_user_id` and `mcq_attempts.user_id` hold real ids from the `users` table
+- [x] Invalid bodies return 400 and unknown ids return 404, with no partial writes
+- [x] Each phase's tests were written first, ran red for the intended reason, then went green
+- [x] The 33 existing auth tests stay green throughout
+- [x] `npm test`, `npm run lint`, and `npm run build` all succeed
 
 ---
 
@@ -495,6 +503,12 @@ Populate as issues surface. Anything longer than a few lines belongs in `ai-work
 **Solution**: Use `window.localStorage` in app code. Polyfill it in `src/test/setup.ts` for jsdom tests.
 **Code Reference**: `src/lib/current-user.ts`, `src/test/setup.ts`
 
+### Windows deploy EPERM on `.open-next`
+**Problem**: `npm run deploy` fails with `EPERM` deleting `.open-next`.
+**Cause**: `next dev` / `workerd` still holds the folder.
+**Solution**: Stop the Next/dev Worker process, delete `.open-next`, retry. OpenNext warns Windows is unsupported.
+**Code Reference**: `package.json` `deploy` script
+
 ---
 
 ## Notes for AI Agents
@@ -518,12 +532,18 @@ When working with this PRD:
 ## Current Status
 
 **Last Updated**: 2026-08-31
-**Current Phase**: Phase 7 - Preview and attempts UI
+**Current Phase**: Phase 8 - Verification
 **Status**: COMPLETED
 **Branch**: `feature/mcq-crud`
 
 **Verification**:
-- Preview tests: red (missing `./mcq-preview`), then green
+- Phase 7 commit `a5ddd2c` is on origin
+- Worker: https://quizmaker.bhaskar-m.workers.dev (version `9c14bc65-b7f2-4adc-97e9-4973b5345169`)
 - `npm test`: 94 passed (18 files)
+- `npm run lint`: exit 0 (unused list-GET param removed)
+- `npm run build`: exit 0
+- Manual: create, edit, preview, delete verified locally
+- Local D1: 0 MCQ/choice/attempt rows after delete; 0 orphans; 5 users
+- Remote D1: `0002_create_mcqs.sql` applied; `mcqs`, `mcq_choices`, and `mcq_attempts` present; 0 rows
 
-**Next Steps**: Await confirmation to commit, push, and deploy Phase 7. Then Phase 8 (verification).
+**Next Steps**: None. This sprint is complete. Production question-bank writes can persist. Do not start a new sprint until asked.

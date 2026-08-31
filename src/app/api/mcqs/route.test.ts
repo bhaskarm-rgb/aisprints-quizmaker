@@ -69,7 +69,7 @@ describe("GET /api/mcqs", () => {
 	it("returns 200 with a list of question summaries", async () => {
 		vi.mocked(listMcqs).mockResolvedValue(summaries);
 
-		const response = await GET(new Request("http://localhost/api/mcqs"));
+		const response = await GET();
 		const body = await response.json();
 
 		expect(response.status).toBe(200);

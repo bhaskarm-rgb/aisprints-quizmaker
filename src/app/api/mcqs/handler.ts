@@ -7,7 +7,7 @@ import {
 	McqValidationError,
 } from "@/lib/services/mcq";
 
-export async function GET(_request: Request) {
+export async function GET() {
 	try {
 		const mcqs = await listMcqs();
 		return NextResponse.json({ mcqs });
