@@ -293,7 +293,7 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 
 **Phase gate**: Table and current-user tests green; prior tests green.
 
-### Phase 6: MCQ editor - PLANNED
+### Phase 6: MCQ editor - COMPLETED
 
 **Objective**: Create and edit questions in the browser.
 
@@ -340,9 +340,11 @@ Each phase ends with: green suite, commit, push, deploy, and the hash reported b
 - `src/components/mcq-table.tsx` - question bank table, actions menu, delete confirmation
 - `src/components/mcq-bank.tsx` - fetches `/api/mcqs` and feeds the table
 - `src/app/mcqs/page.tsx` - question bank page
-- `src/app/mcqs/new/page.tsx`, `src/app/mcqs/[id]/edit/page.tsx` - editor shells
+- `src/app/mcqs/new/page.tsx` - create page
+- `src/app/mcqs/[id]/edit/page.tsx` - edit page (loads via GET)
+- `src/components/mcq-form.tsx` - shared create/edit form
 - `src/app/mcqs/[id]/preview/page.tsx` - preview shell
-- `src/components/mcq-form.tsx`, `mcq-preview.tsx` - later-phase client components
+- `src/components/mcq-preview.tsx` - later-phase client component
 - Colocated `*.test.ts` / `*.test.tsx` beside each of the above
 
 ### Implementation Patterns
@@ -515,13 +517,13 @@ When working with this PRD:
 
 ## Current Status
 
-**Last Updated**: 2026-08-30
-**Current Phase**: Phase 5 - Question bank table
+**Last Updated**: 2026-08-31
+**Current Phase**: Phase 6 - MCQ editor
 **Status**: COMPLETED
 **Branch**: `feature/mcq-crud`
 
 **Verification**:
-- Table and current-user tests: red (missing modules), then green
-- `npm test`: 80 passed (16 files)
+- Editor tests: red (missing `./mcq-form`), then green
+- `npm test`: 91 passed (17 files)
 
-**Next Steps**: Await confirmation to commit, push, and deploy Phase 5. Then Phase 6 (MCQ editor).
+**Next Steps**: Await confirmation to commit, push, and deploy Phase 6. Then Phase 7 (preview).
