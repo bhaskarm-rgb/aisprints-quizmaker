@@ -46,7 +46,9 @@ export function McqBank() {
 		<McqTable
 			questions={questions}
 			onDeleted={(id) =>
-				setQuestions((current) => current.filter((question) => question.id !== id))
+				setQuestions((current) =>
+					(current ?? []).filter((question) => question.id !== id),
+				)
 			}
 		/>
 	);
